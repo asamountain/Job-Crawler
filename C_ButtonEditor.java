@@ -15,38 +15,36 @@ import javax.swing.table.*;
  * @version 1.0 11/09/98
  */
 public class C_ButtonEditor extends DefaultCellEditor {
+	// The button displayed in the cell
 	protected JButton button;
+	// The label for the button
 	private String label;
+	// Used to track if the button was pushed
 	private String isPushed;
 
+	// Constructor: sets up the button and its action for opening URLs
 	public C_ButtonEditor(JCheckBox checkBox, JTable table, DefaultTableModel dtmb) {
-
 		super(checkBox);
 		button = new JButton();
 		button.setOpaque(true);
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
+					// Open the URL from the hidden column in the default browser
 					Desktop.getDesktop()
-							.browse(new URL((dtmb.getValueAt(table.getSelectedRow(), 1)).toString()).toURI());
-					/*
-					 * 중요파트 : 선택된 첫번째 행과 첫번째 열에서 값을 얻고, 그 값을 스트링으로 변환한 값 = 다시말해 숨겨놓았던 테이블의 url값들
-					 */
-
+						.browse(new URL((dtmb.getValueAt(table.getSelectedRow(), 1)).toString()).toURI());
 				} catch (MalformedURLException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (URISyntaxException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
 		});
 	}
 
+	// Returns the button component for the cell
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 		if (isSelected) {
 			button.setForeground(table.getSelectionForeground());
@@ -62,31 +60,30 @@ public class C_ButtonEditor extends DefaultCellEditor {
 		return button;
 	}
 
+	// Opens the link if the button was pushed (not used in this context)
 	public Object getCellEditorValue(String link) {
 		if (isPushed == "") {
 			try {
 				Desktop.getDesktop().browse(new URL(link).toURI());
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 		}
 		isPushed = "";
 		return new String(label);
 	}
 
+	// Resets the push state when editing stops
 	public boolean stopCellEditing() {
 		isPushed = "";
 		return super.stopCellEditing();
 	}
 
+	// Notifies that editing has stopped
 	protected void fireEditingStopped() {
 		super.fireEditingStopped();
 	}

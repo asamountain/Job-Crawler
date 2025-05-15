@@ -29,160 +29,131 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
-
-
+// C_JSoupCrawlerIncruit.java
+// This class handles crawling job postings from Incruit using Selenium and JSoup, and displays them in a Swing table UI.
 public class C_JSoupCrawlerIncruit extends JPanel {
 
+	// Stores the URL after Selenium search
 	public static String incruitUrl;
 
-	// ---------------------- 라벨
-
+	// Self-reference for inner class usage
 	C_JSoupCrawlerIncruit self = this;
+	// Unused, but could be used for clickable text
 	JEditorPane clickableTextPane = new JEditorPane();
 
+	// Table headers for job info and links
 	Object[] DefaultHeaderTitles = { "회사", "공고", };
 	Object[] DefaultHeaderLinks = { "링크", "URL" };
 
+	// Table models for job info and links
 	private DefaultTableModel dtmt = new DefaultTableModel(DefaultHeaderTitles, 0);
 	private DefaultTableModel dtmb = new DefaultTableModel(DefaultHeaderLinks, 0);
 
+	// Tables for displaying job info and link buttons
 	JXTable tableSetTitle = new JXTable(dtmt);
 	JXTable tableSetButtons = new JXTable(dtmb);
 
+	// Scroll panes for tables
 	JScrollPane scrollForTitle = new JScrollPane(tableSetTitle);
 	JScrollPane scrollForButtons = new JScrollPane(tableSetButtons);
 
+	// Wrapper panel for layout
 	JPanel wrapper = new JPanel();
 	JScrollPane scroll = new JScrollPane(wrapper);
 
-	// --------------------------------테이블 설정
-
+	// Button for opening links (used in custom cell editor)
 	JButton linkedButtons;
 
-	// ------------------버튼
-
+	// StringBuilder for potential text accumulation (not used)
 	StringBuilder sb = new StringBuilder();
 
+	// Constructor: runs Selenium, JSoup, and initializes UI
 	public C_JSoupCrawlerIncruit(JFrame Main) {
-
 		SeleniumFunction();
-		JSoupFunction();// Jsoup이 Selenium보다 먼저 시작되어선 안됨, Selenium이 먼저되어야 url을 따올 수 있음
+		JSoupFunction(); // JSoup must run after Selenium to get the correct URL
 		compInit(Main);
-
 	}
 
+	// Adds an ActionListener to a button to open a link in the browser
 	public void linksToButtons(String link) {
-
 		linkedButtons.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					Desktop.getDesktop().browse(new URL(link).toURI());
 				} catch (Exception e1) {
 					e1.printStackTrace();
-
 				}
 			}
 		});
-
 	}
 
-	public String SeleniumFunction() { // 사람인에서 매 순간 순간 검색해가며 찾음
-
+	// Uses Selenium (HtmlUnitDriver) to search "웹 개발" on Incruit and get the result URL
+	public String SeleniumFunction() {
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF);
-
 		java.util.logging.Logger.getLogger("org.apache.http").setLevel(java.util.logging.Level.OFF);
-
-		System.setProperty("webdriver.chrome.driver", "chromedriver.exe"); // 아예 크롬 드라이버를 깔기 때문에 문제가 없음
-
+		System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
 		WebDriver driver = new HtmlUnitDriver();
-
 		driver.get("http://www.incruit.com/");
-
-		// 검색어 입력 - 사이트마다 다르기 때문에 다른 값을 입력해야함
-
 		WebElement elements = driver.findElement(By.xpath("//*[@id=\"kw\"]"));
-		elements.sendKeys("웹 개발"); // 단어 검색 -----------------------------
-									// elements.sendKeys(keywordInput=JTextfield.getText())
-		elements.submit(); // 버튼 클릭.
-		incruitUrl = driver.getCurrentUrl(); // url 담기
-
-		System.out.println(incruitUrl); // url 뽑아내기
+		elements.sendKeys("웹 개발"); // Search for web development jobs
+		elements.submit(); // Submit the search
+		incruitUrl = driver.getCurrentUrl(); // Save the resulting URL
+		System.out.println(incruitUrl);
 		return incruitUrl;
 	}
 
+	// Initializes the UI components and layout
 	public void compInit(JFrame Main) {
-
 		this.wrapper.add(scrollForTitle);
 		this.wrapper.add(scrollForButtons);
 		tableSetTitle.enable(true);
-		wrapper.setPreferredSize(new Dimension(1500, 850)); // 전체 패널 사이즈
-
+		wrapper.setPreferredSize(new Dimension(1500, 850));
 		scrollForTitle.setPreferredSize(new Dimension(1300, 800));
 		scrollForTitle.setBorder(BorderFactory.createEmptyBorder());
 		scrollForButtons.setPreferredSize(new Dimension(50, 800));
 		scrollForButtons.setBorder(BorderFactory.createEmptyBorder());
-
 		tableSetTitle.getColumn(0).setMinWidth(150);
 		tableSetTitle.getColumn(1).sizeWidthToFit();
 		tableSetButtons.packAll();
-		// -----------------------------------------폭 조정
-
 		self.add(scroll);
-		scroll.setPreferredSize(new Dimension(1500, 700)); // scrollPane 사이즈
-		setSize(1500, 800); // JDialog 사이즈
-		// setLocationRelativeTo(Main);
-		// setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		scroll.setPreferredSize(new Dimension(1500, 700));
+		setSize(1500, 800);
 		System.out.println("화면 띄우기");
 		setVisible(true);
-
 	}
 
+	// Uses JSoup to scrape job postings and links from the Incruit search results page
 	public void JSoupFunction() {
-
-		// ---------------------------------------- 테이블 생성
-
 		String url = incruitUrl;
-
 		Document doc;
 		try {
 			doc = Jsoup.connect(url).get();
 			int i = 0;
-
 			Elements titles = doc.select("div#content div.section ul.litype01 li");
 			for (Element e : titles) {
-				String companyTitle = (e.text()); // 공고문
+				String companyTitle = (e.text());
 				System.out.println("처음 따온 쌩 날 것 텍스트 전문 : " + companyTitle);
 				System.out.println(i);
 				i++;
 				String[] getJobDetailInformation = companyTitle.split("스크랩");
 				String getNoticementLine = getJobDetailInformation[0].replace("관심기업등록", "");
 				String getCompanyName = getJobDetailInformation[0].split("관심기업등록")[0];
-
 				dtmt.addRow(new Object[] { getCompanyName, getNoticementLine, "" });
-
 			}
-
 			i = 0;
 			Elements links = doc.select("div#content div.section ul.litype01 li p.detail a");
-
 			for (Element l : links) {
-
 				String link = (l.attr("href"));
 				System.out.println("잡은 링크 : " + link);
 				System.out.println(i);
 				tableSetButtons.getColumn("링크").setCellRenderer(new C_ButtonRenderer());
 				tableSetButtons.getColumn("링크")
-						.setCellEditor(new C_ButtonEditor(new JCheckBox(), tableSetButtons, dtmb));
-
+					.setCellEditor(new C_ButtonEditor(new JCheckBox(), tableSetButtons, dtmb));
 				tableSetButtons.getColumnModel().getColumn(1).setMinWidth(0);
-				tableSetButtons.getColumnModel().getColumn(1).setMaxWidth(0); // url 테이블 숨기기
-				// tableSetButtons.getColumn(0).
+				tableSetButtons.getColumnModel().getColumn(1).setMaxWidth(0); // Hide URL column
 				tableSetButtons.getColumn(0).setMinWidth(50);
-
 				i++;
-
 				dtmb.addRow(new Object[] { "", link });
 			}
 		} catch (Exception e) {
@@ -190,6 +161,7 @@ public class C_JSoupCrawlerIncruit extends JPanel {
 		}
 	}
 
+	// Main method for standalone testing
 	public static void main(String[] args) {
 		try {
 			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -198,18 +170,13 @@ public class C_JSoupCrawlerIncruit extends JPanel {
 					break;
 				}
 			}
-
 			UIManager.put("nimbusBase", Color.white);
 			UIManager.put("nimbusBlueGrey", Color.white);
 			UIManager.put("control", Color.white);
-
-		} catch (Exception e) {
-		}
-
+		} catch (Exception e) {}
 		SwingUtilities.invokeLater(new Thread() {
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				new C_JSoupCrawlerIncruit(null);
 			}
 		});

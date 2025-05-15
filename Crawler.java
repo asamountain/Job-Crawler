@@ -1,4 +1,5 @@
-
+// Crawler.java
+// This is the main entry point for the Job-Crawler application. It creates the main window and tabbed interface for job site crawlers.
 package Crawler;
 
 import java.awt.BorderLayout;
@@ -14,15 +15,17 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 public class Crawler extends JFrame {
+	// Self-reference for inner class usage
 	Crawler self = this;
+	// Tab names for each job site
 	final static String tabNameSaramIn = "사람인";
 	final static String tabNameJobKorea = "잡코리아";
 	final static String tabNameIncruit = "인쿠르트";
 	final static int extraWindowWidth = 100;
 
+	// Constructor: sets up look and feel, then creates the GUI
 	public Crawler() {
 		System.out.println("C_Recruitment 1");
-
 		try {
 			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 				if ("Nimbus".equals(info.getName())) {
@@ -30,27 +33,25 @@ public class Crawler extends JFrame {
 					break;
 				}
 			}
-
 			UIManager.put("nimbusBase", Color.WHITE);
 			UIManager.put("nimbusBlueGrey", Color.WHITE);
 			UIManager.put("control", Color.WHITE);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		System.out.println("2 createAndShowGUI();");
 		createAndShowGUI();
 	}
 
+	// Adds the tabbed pane with each job site panel to the main window
 	public static void addComponentToPane(Container pane) {
 		System.out.println(3);
 		JTabbedPane tabbedPane = new JTabbedPane();
-		// Create the "cards".
+		// Create the "cards" (tabs)
 
 		JPanel card1 = new JPanel() {
-
-			public Dimension getPreferredSize() { // 패널사이즈
+			// Override preferred size to add extra width
+			public Dimension getPreferredSize() {
 				Dimension size = super.getPreferredSize();
 				size.width += extraWindowWidth;
 				return size;
@@ -77,19 +78,20 @@ public class Crawler extends JFrame {
 		pane.add(tabbedPane, BorderLayout.SOUTH);
 	}
 
+	// Creates and shows the main application window
 	private static void createAndShowGUI() {
 		System.out.println("2");
 		JDialog frame = new JDialog();
 		frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		frame.setResizable(false);
-
 		System.out.println("4");
 		addComponentToPane(frame.getContentPane());
-		// 윈도우 열기
+		// Show the window
 		frame.pack();
 		frame.setVisible(true);
 	}
 	
+	// Main method: launches the application
 	public static void main(String[] args) {
 		new Crawler();
 	}
